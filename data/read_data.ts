@@ -28,7 +28,7 @@ export function metadatas(): Promise<{ [id: string]: CounterMetadata }> {
           reject(errors);
         } else {
           const result = _(data)
-            .map((r) => [r.id_compteur, r])
+            .map((r) => [r.ident, r])
             .fromPairs()
             .value();
           resolve(result);
@@ -68,15 +68,14 @@ export async function counts(): Promise<{
       delimiter: ';',
       header: true,
       step: ({ data, errors }) => {
-        if (data['id_compteur'] === '') {
+        if (data['ident'] === '') {
           // skip empty values
         } else if (errors.length > 0) {
           console.error(errors);
           reject(errors);
         } else {
-          const id = data['id_compteur'];
-          const count = Number(data['sum_counts']);
-
+          const id = data['ident'];
+          const count = Number(data['comptage_5m']);
           if (counters[id] === undefined) {
             counters[id] = defaultCounter(daysThisYear);
           }

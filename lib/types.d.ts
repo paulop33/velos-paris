@@ -13,7 +13,17 @@ export type CounterSummary = {
 
 export type CounterMetadata = {
   id_compteur: string;
-  nom_compteur: string;
+  ident: string;
+  id: string;
+  libelle: string;
+  channel_id: string;
+  cdate: string;
+  url_photos_n1: string;
+  geopoint: string;
+};
+
+export type CounterMetadataFieldMapper = {
+  id_compteur: string;
   id: string;
   name: string;
   channel_id: string;

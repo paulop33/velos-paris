@@ -14,7 +14,7 @@ import {
   Counter,
   CounterDetails,
 } from '../../lib/types';
-import { strip } from '../../lib/helpers';
+import { strip, metadataFieldMapper } from '../../lib/helpers';
 import Heatmap from '../../components/heatmap';
 import { DateTime } from 'luxon';
 
@@ -32,7 +32,7 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
 export const getStaticPaths: GetStaticPaths = async () => {
   const counters = await metadatas();
   const paths = _.map(counters, (c: CounterMetadata) => ({
-    params: { counter: slugify(strip(c.name)) },
+    params: { counter: slugify(strip(c[metadataFieldMapper.name])) },
   }));
 
   return {

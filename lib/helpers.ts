@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import { CounterMetadata, CounterSummary, CounterStat } from './types';
+import { CounterMetadata, CounterSummary, CounterStat, CounterMetadataFieldMapper } from './types';
 
 export const parseCoord = (coord: string): [number, number] => {
   const parts = coord.split(',');
@@ -13,12 +13,11 @@ const transform = (metadatas: { [id: string]: CounterMetadata }) => (
   const metadata = metadatas[id];
   const minDate = counter.minDate;
   const maxDate = counter.maxDate;
-
   const days = Math.round(maxDate.diff(minDate, 'day').days);
   return {
     id,
-    label: metadata.nom_compteur,
-    strippedLabel: strip(metadata.nom_compteur),
+    label: metadata[metadataFieldMapper.name],
+    strippedLabel: strip(metadata[metadataFieldMapper.name]),
     days,
     total: counter.total,
     day: counter.day,
@@ -27,7 +26,7 @@ const transform = (metadatas: { [id: string]: CounterMetadata }) => (
     year: counter.year,
     daysThisYear: counter.daysThisYear,
     included: [],
-    coordinates: parseCoord(metadata.coordinates),
+    coordinates: parseCoord(metadata[metadataFieldMapper.coordinates]),
   };
 };
 
@@ -106,3 +105,19 @@ export const prepareStats = (
     .reverse()
     .toArray()
     .value();
+
+const metadataFieldMapperCalcul = ():CounterMetadataFieldMapper => {
+  let obj;
+  let fields = ["id_compteur", "id", "name", "channel_id", "channel_name", "installation_date", "url_photos_n1", "coordinates"];
+  fields.forEach((value, index) => {
+    console.log(process.env);
+    if (typeof process.env[value] != 'undefined') {
+      obj[value] = process.env[value];
+    }
+  });
+  console.log(obj);
+  die;
+  return obj;
+};
+
+export const metadataFieldMapper:CounterMetadataFieldMapper = metadataFieldMapperCalcul();

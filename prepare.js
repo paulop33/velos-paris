@@ -4,6 +4,20 @@ const _ = require('lodash');
 const { DateTime } = require('luxon');
 const slugify = require('slugify');
 
+const metadataFieldMapperCalcul = () => {
+  let obj;
+  let fields = ["id_compteur", "id", "name", "channel_id", "channel_name", "installation_date", "url_photos_n1", "coordinates"];
+  fields.forEach((value, index) => {
+    console.log(process.env);
+    if (typeof process.env[value] != 'undefined') {
+      obj[value] = process.env[value];
+    }
+  });
+  return obj;
+};
+
+const metadataFieldMapper = metadataFieldMapperCalcul();
+
 const strip = (name) => {
   const num = /^\d+/;
   const direction = /[NESO]+-[NESO]+/g;
@@ -53,7 +67,8 @@ const fix = (name) => {
 };
 
 function metadatas() {
-  const file = fs.createReadStream('./public/metadata.csv');
+  const metadataField = metadataFieldMapper;
+  const file = fs.createReadStream('./public/metadata_bordeaux.csv');
   Papa.parse(file, {
     delimiter: ';',
     header: true,
@@ -62,7 +77,7 @@ function metadatas() {
         console.error('While parsing metadata', errors);
       } else {
         const result = _(data)
-          .map((r) => [r.id_compteur, r])
+          .map((r) => [r.ident, r])
           .fromPairs()
           .value();
         readCSV(result);
@@ -82,11 +97,11 @@ function readCSV(metadata) {
       if (errors.length > 0) {
         console.error(errors);
       } else {
-        const id = data['id_compteur'];
+        const id = data['ident'];
 
         result.push({
           time: data['date'],
-          count: Number(data['sum_counts']),
+          count: Number(data['comptage_5m']),
           id,
         });
       }
@@ -97,12 +112,14 @@ function readCSV(metadata) {
   });
 }
 
-const relevantIds = (metadata, counterId) =>
-  _(metadata)
+const relevantIds = function(metadata, counterId) {
+  console.log(counterId);
+  return _(metadata)
     .toArray()
-    .filter((counter) => strip(counter.name) === counterId)
-    .map('id_compteur')
+    .filter((counter) => strip(counter.libelle) === counterId)
+    .map('ident')
     .value();
+}
 
 const channelName = (id, metadata) => {
   if (
@@ -166,10 +183,10 @@ const prepare = (ids, details, metadata, counter) => {
   return {
     title: counter,
     details: ids.map((id) => ({
-      name: metadata[id].nom_compteur,
+      name: metadata[id].libelle,
       img: metadata[id].url_photos_n1,
-      date: metadata[id].installation_date,
-      coord: parseCoord(metadata[id].coordinates),
+      date: metadata[id].cdate,
+      coord: parseCoord(metadata[id].geopoint),
     })),
     day: sorted.filter((d) => d.time >= oneDay),
     hour_record: record(sorted, { minute: 0, second: 0 }),
@@ -184,7 +201,7 @@ const prepare = (ids, details, metadata, counter) => {
 async function save(data, metadata) {
   const grouped = _(metadata)
     .values()
-    .groupBy((m) => strip(m.nom_compteur))
+    .groupBy((m) => strip(m.libelle))
     .value();
 
   for (const counter in grouped) {
